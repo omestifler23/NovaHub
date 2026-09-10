@@ -1,0 +1,18 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NovaHub Admin</title><link rel="stylesheet" href="/styles.css"></head><body><main class="wrap admin">
+<h1>NovaHub Admin</h1><p>Panel local/privado para métricas e importación de ingresos.</p>
+<div class="card"><label>Admin key <input id="key" type="password" placeholder="ADMIN_KEY"></label><button class="btn" onclick="load()">Cargar métricas</button></div>
+<div id="metrics" class="stats"></div><div id="tables"></div>
+<h2>Registrar ingresos del proveedor</h2><form id="rev" class="card">
+<input name="source" placeholder="Proveedor / fuente" required><input name="period" placeholder="2026-09" required>
+<input name="impressions" type="number" min="0" placeholder="Impresiones"><input name="clicks" type="number" min="0" placeholder="Clicks">
+<input name="revenue" type="number" min="0" step="0.01" placeholder="Ingresos USD" required><button class="btn">Guardar</button>
+</form><p class="muted">No pongas credenciales de proveedores en el frontend. Usa variables de entorno en el servidor.</p>
+</main><script>
+let K="";
+async function load(){K=document.getElementById("key").value;const r=await fetch("/api/stats",{headers:{"x-admin-key":K}});if(!r.ok){alert("Clave incorrecta o panel no autorizado");return}const d=await r.json();
+document.getElementById("metrics").innerHTML=[["Sesiones",d.sessions],["Vistas",d.views],["Impresiones monetizadas",d.monetized_impressions],["Clicks",d.clicks],["CTR",d.ctr.toFixed(2)+"%"],["Ingresos", "$"+d.revenue.toFixed(2)],["RPM","$"+d.rpm.toFixed(2)]].map(x=>`<div class="metric"><b>${x[1]}</b><span>${x[0]}</span></div>`).join("");
+document.getElementById("tables").innerHTML="<h2>Ranking</h2><div class='card'>"+d.creators.map((c,i)=>`<p><b>#${i+1} ${c.name}</b> — ${c.views} vistas · $${Number(c.revenue).toFixed(2)}</p>`).join("")+"</div><h2>Fuentes</h2><div class='card'>"+d.sources.map(s=>`<p>${s.source}: ${s.impressions} imp · ${s.clicks} clicks · $${Number(s.revenue).toFixed(2)}</p>`).join("")+"</div>";
+}
+document.getElementById("rev").onsubmit=async e=>{e.preventDefault();const o=Object.fromEntries(new FormData(e.target));o.impressions=+o.impressions;o.clicks=+o.clicks;o.revenue=+o.revenue;const r=await fetch("/api/revenue",{method:"POST",headers:{"Content-Type":"application/json","x-admin-key":K},body:JSON.stringify(o)});alert(r.ok?"Ingresos guardados":"Error");if(r.ok)load()};
+</script></body></html>
