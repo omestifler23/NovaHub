@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 const ADMIN_KEY = process.env.ADMIN_KEY || 'change-this-admin-key';
 app.set('trust proxy', 1);
 const PUBLIC_URL = (process.env.PUBLIC_URL || '').replace(/\/$/, '');
-const dbPath = process.env.DB_PATH || (process.env.RENDER ? '/var/data/novahub.db' : path.join(__dirname, 'novahub.db'));
+const dbPath = process.env.DB_PATH || path.join(__dirname, 'novahub.db');
 const db = new Database(dbPath);
 db.pragma('journal_mode = WAL');
 
